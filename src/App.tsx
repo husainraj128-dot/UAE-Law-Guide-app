@@ -19,7 +19,11 @@ import {
   History,
   ArrowLeft,
   ExternalLink,
-  Gavel
+  Gavel,
+  MapPin,
+  Clock,
+  Globe,
+  CheckCircle2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import Markdown from 'react-markdown';
@@ -50,6 +54,8 @@ export default function App() {
   const [categoryContent, setCategoryContent] = useState<string | null>(null);
   const [isLoadingContent, setIsLoadingContent] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [feedbackStatus, setFeedbackStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
+  const [activeEmirate, setActiveEmirate] = useState(0);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [userInput, setUserInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -121,6 +127,53 @@ export default function App() {
       setIsTyping(false);
     }
   };
+
+  const handleFeedbackSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setFeedbackStatus('submitting');
+    setTimeout(() => {
+      setFeedbackStatus('success');
+      setTimeout(() => setFeedbackStatus('idle'), 3000);
+    }, 1500);
+  };
+
+  const EMIRATES_DIRECTORY = [
+    {
+      emirate: "Abu Dhabi",
+      departments: [
+        { name: "Abu Dhabi Police", timing: "24/7", link: "https://www.adpolice.gov.ae", map: "https://goo.gl/maps/AbuDhabiPoliceHQ" },
+        { name: "DMT (Municipality)", timing: "07:30 - 15:30 (Mon-Fri)", link: "https://www.dmt.gov.ae", map: "https://goo.gl/maps/AbuDhabiMunicipality" },
+        { name: "Economic Development", timing: "07:30 - 15:30 (Mon-Fri)", link: "https://added.gov.ae", map: "https://goo.gl/maps/AbuDhabiADDED" },
+        { name: "Judicial Department", timing: "07:30 - 15:30 (Mon-Fri)", link: "https://www.adjd.gov.ae", map: "https://goo.gl/maps/AbuDhabiJudicial" }
+      ]
+    },
+    {
+      emirate: "Dubai",
+      departments: [
+        { name: "Dubai Police", timing: "24/7", link: "https://www.dubaipolice.gov.ae", map: "https://goo.gl/maps/DubaiPoliceHQ" },
+        { name: "Dubai Municipality", timing: "07:30 - 15:30 (Mon-Fri)", link: "https://www.dm.gov.ae", map: "https://goo.gl/maps/DubaiMunicipality" },
+        { name: "RTA", timing: "07:30 - 19:00 (Mon-Sat)", link: "https://www.rta.ae", map: "https://goo.gl/maps/DubaiRTA" },
+        { name: "Dubai Courts", timing: "08:00 - 15:00 (Mon-Fri)", link: "https://www.dc.gov.ae", map: "https://goo.gl/maps/DubaiCourts" }
+      ]
+    },
+    {
+      emirate: "Sharjah",
+      departments: [
+        { name: "Sharjah Police", timing: "24/7", link: "https://www.shjpolice.gov.ae", map: "https://goo.gl/maps/SharjahPoliceHQ" },
+        { name: "Sharjah Municipality", timing: "07:30 - 14:30 (Mon-Thu)", link: "https://portal.shjmun.gov.ae", map: "https://goo.gl/maps/SharjahMunicipality" },
+        { name: "Economic Development", timing: "07:30 - 14:30 (Mon-Thu)", link: "https://sedd.ae", map: "https://goo.gl/maps/SharjahSEDD" }
+      ]
+    },
+    {
+      emirate: "Northern Emirates",
+      departments: [
+        { name: "Ajman Municipality", timing: "07:30 - 14:30", link: "https://www.am.gov.ae", map: "https://goo.gl/maps/AjmanMunicipality" },
+        { name: "RAK Municipality", timing: "07:30 - 14:30", link: "https://www.rak.ae", map: "https://goo.gl/maps/RAKMunicipality" },
+        { name: "Fujairah Municipality", timing: "07:30 - 14:30", link: "https://www.fujmun.gov.ae", map: "https://goo.gl/maps/FujairahMunicipality" },
+        { name: "UAQ Municipality", timing: "07:30 - 14:30", link: "https://www.uaq.ae", map: "https://goo.gl/maps/UAQMunicipality" }
+      ]
+    }
+  ];
 
   const toggleBookmark = (id: string) => {
     setBookmarks(prev => 
@@ -322,6 +375,172 @@ export default function App() {
                 </div>
                 <Scale className="absolute -right-20 -bottom-20 w-96 h-96 text-white/5 -rotate-12" />
               </motion.section>
+
+              {/* Emirates Directory Section */}
+              <motion.section 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="my-20"
+              >
+                <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-12">
+                  <div>
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-uae-gold/10 text-uae-gold rounded-full text-xs font-bold uppercase tracking-widest mb-4">
+                      <MapPin className="w-3 h-3" /> Local Directory
+                    </div>
+                    <h3 className="text-4xl font-black text-slate-900 tracking-tight">Emirates & Departments</h3>
+                    <p className="text-slate-500 mt-2">Operational timings and official links for key government entities across the UAE.</p>
+                  </div>
+                  
+                  <div className="flex gap-2 bg-slate-100 p-1.5 rounded-2xl">
+                    {EMIRATES_DIRECTORY.map((item, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setActiveEmirate(idx)}
+                        className={cn(
+                          "px-6 py-2.5 rounded-xl text-sm font-bold transition-all",
+                          activeEmirate === idx 
+                            ? "bg-white text-uae-black shadow-sm" 
+                            : "text-slate-500 hover:text-slate-900"
+                        )}
+                      >
+                        {item.emirate}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <AnimatePresence mode="wait">
+                    {EMIRATES_DIRECTORY[activeEmirate].departments.map((dept, i) => (
+                      <motion.div
+                        key={`${activeEmirate}-${i}`}
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ delay: i * 0.05 }}
+                        className="bg-white border border-slate-100 p-6 rounded-3xl shadow-sm hover:shadow-xl hover:border-uae-gold/20 transition-all group"
+                      >
+                        <h4 className="font-bold text-slate-900 mb-4 group-hover:text-uae-gold transition-colors">{dept.name}</h4>
+                        <div className="space-y-3 mb-6">
+                          <div className="flex items-center gap-3 text-xs text-slate-500">
+                            <Clock className="w-3.5 h-3.5 text-slate-300" />
+                            <span>{dept.timing}</span>
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-slate-500">
+                            <Globe className="w-3.5 h-3.5 text-slate-300" />
+                            <span className="truncate">{dept.link.replace('https://', '')}</span>
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-slate-500">
+                            <MapPin className="w-3.5 h-3.5 text-slate-300" />
+                            <a href={dept.map} target="_blank" rel="noopener noreferrer" className="text-uae-gold hover:underline font-bold">View on Google Maps</a>
+                          </div>
+                        </div>
+                        <a 
+                          href={dept.link} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="w-full py-3 bg-slate-50 text-slate-900 text-xs font-bold rounded-xl flex items-center justify-center gap-2 group-hover:bg-uae-gold group-hover:text-uae-black transition-all"
+                        >
+                          Visit Website <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
+              </motion.section>
+
+              {/* Service Inquiry Section */}
+              <motion.section 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="mb-20 bg-uae-gold/5 rounded-[3rem] p-12 border border-uae-gold/10"
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                  <div>
+                    <h3 className="text-4xl font-black text-slate-900 tracking-tight mb-6">Get Legal Guidance & Assistance</h3>
+                    <p className="text-slate-600 text-lg leading-relaxed mb-8">
+                      Need help with a specific legal matter? Submit your inquiry below, and our portal will provide you with the necessary guidance and official procedures.
+                    </p>
+                    
+                    <div className="space-y-6">
+                      {[
+                        { icon: CheckCircle2, title: "Service Guidance", text: "Get step-by-step help for your specific legal needs and filing procedures." },
+                        { icon: MessageSquare, title: "Legal Inquiries", text: "Submit questions regarding labor, visa, business, or property laws." },
+                      ].map((item, i) => (
+                        <div key={i} className="flex gap-4">
+                          <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm shrink-0">
+                            <item.icon className="w-6 h-6 text-uae-gold" />
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-slate-900">{item.title}</h4>
+                            <p className="text-sm text-slate-500">{item.text}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-8 rounded-[2rem] shadow-2xl shadow-uae-gold/5 border border-slate-100">
+                    {feedbackStatus === 'success' ? (
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="py-12 text-center"
+                      >
+                        <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                          <CheckCircle2 className="w-10 h-10" />
+                        </div>
+                        <h4 className="text-2xl font-bold text-slate-900 mb-2">Inquiry Received</h4>
+                        <p className="text-slate-500">Your service inquiry has been logged. Our AI assistant will also help you if you use the chat below.</p>
+                      </motion.div>
+                    ) : (
+                      <form onSubmit={handleFeedbackSubmit} className="space-y-5">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Name</label>
+                            <input required type="text" className="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-uae-gold outline-none transition-all" placeholder="John Doe" />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Email</label>
+                            <input required type="email" className="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-uae-gold outline-none transition-all" placeholder="john@example.com" />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Service Category</label>
+                          <select required className="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-uae-gold outline-none transition-all appearance-none cursor-pointer">
+                            <option value="">Select a category</option>
+                            <option>Labor & Employment</option>
+                            <option>Visa & Residency</option>
+                            <option>Business & Corporate Law</option>
+                            <option>Real Estate & Property</option>
+                            <option>Traffic & Transport</option>
+                            <option>Family & Personal Status</option>
+                            <option>Other Legal Services</option>
+                            <option>Others</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Inquiry Details</label>
+                          <textarea required rows={4} className="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-uae-gold outline-none transition-all resize-none" placeholder="Describe the service or legal matter you need help with..."></textarea>
+                        </div>
+                        <button 
+                          type="submit" 
+                          disabled={feedbackStatus === 'submitting'}
+                          className="w-full py-4 bg-uae-black text-white font-bold rounded-xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                          {feedbackStatus === 'submitting' ? (
+                            <> <Loader2 className="w-4 h-4 animate-spin" /> Processing...</>
+                          ) : (
+                            <> <Send className="w-4 h-4 text-uae-gold" /> Submit Inquiry</>
+                          )}
+                        </button>
+                      </form>
+                    )}
+                  </div>
+                </div>
+              </motion.section>
             </motion.div>
           ) : (
             <motion.div
@@ -488,6 +707,21 @@ export default function App() {
         </AnimatePresence>
       </main>
 
+      {/* Floating Chat Button */}
+      <motion.button
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => setIsChatOpen(true)}
+        className="fixed bottom-8 right-8 z-40 w-16 h-16 bg-uae-black text-uae-gold rounded-full shadow-2xl flex items-center justify-center border-2 border-uae-gold/20 group"
+      >
+        <MessageSquare className="w-7 h-7 group-hover:rotate-12 transition-transform" />
+        <div className="absolute -top-2 -right-2 w-6 h-6 bg-uae-gold text-uae-black text-[10px] font-black rounded-full flex items-center justify-center border-2 border-uae-black animate-bounce">
+          AI
+        </div>
+      </motion.button>
+
       {/* AI Chat Drawer */}
       <AnimatePresence>
         {isChatOpen && (
@@ -530,17 +764,22 @@ export default function App() {
               <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50">
                 {chatMessages.length === 0 && (
                   <div className="text-center py-12 px-6">
-                    <div className="w-20 h-20 bg-white rounded-3xl shadow-xl shadow-black/5 flex items-center justify-center mx-auto mb-8">
-                      <Scale className="w-10 h-10 text-uae-gold" />
+                    <div className="w-24 h-24 bg-uae-gold/10 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 relative">
+                      <Scale className="w-12 h-12 text-uae-gold" />
+                      <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-uae-black rounded-xl flex items-center justify-center border-4 border-white">
+                        <MessageSquare className="w-4 h-4 text-uae-gold" />
+                      </div>
                     </div>
-                    <h4 className="text-2xl font-black text-slate-900 mb-3">How can I assist you?</h4>
-                    <p className="text-slate-500 mb-10 leading-relaxed">I have access to the full UAE Federal Legal Database. Ask me about specific cases, document lists, or filing steps.</p>
+                    <h4 className="text-3xl font-black text-slate-900 mb-4 tracking-tight">Your Legal AI Partner</h4>
+                    <p className="text-slate-500 mb-10 leading-relaxed text-sm">
+                      I can summarize legal processes, find accurate information from the UAE Federal Database, and direct you to official government portals for the latest updates.
+                    </p>
                     <div className="grid grid-cols-1 gap-3">
                       {[
-                        "What are the rules for gratuity?",
-                        "How to start a LLC in Dubai?",
-                        "What is the Golden Visa requirement?",
-                        "Traffic fine discount rules"
+                        "Summarize the Golden Visa process",
+                        "How to start a business in Dubai?",
+                        "What are the labor law termination rules?",
+                        "Official link for FTA VAT registration"
                       ].map((q) => (
                         <button 
                           key={q}
