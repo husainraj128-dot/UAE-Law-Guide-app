@@ -8,7 +8,7 @@ export default defineConfig(({mode}) => {
   return {
     plugins: [react(), tailwindcss()],
     define: {
-      'const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY),
+      'process.env.GEMINI_API_KEY': JSON.stringify(AIzaSyDqpEizbh0lz_2Dr_7kWIGK7MyUATt8djM),
     },
     resolve: {
       alias: {
